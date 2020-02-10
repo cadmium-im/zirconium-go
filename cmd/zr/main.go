@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ChronosX88/zirconium/internal"
+	"github.com/google/logger"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -24,8 +25,8 @@ func main() {
 	}).Methods("GET")
 	router.HandleFunc("/ws", wsHandler)
 
-	log.Println("Zirconium successfully started!")
-	log.Fatal(http.ListenAndServe(":8844", router))
+	logger.Info("Zirconium successfully started!")
+	logger.Fatal(http.ListenAndServe(":8844", router))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {

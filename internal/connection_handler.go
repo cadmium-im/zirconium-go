@@ -38,4 +38,5 @@ func (ch *ConnectionHandler) HandleNewConnection(wsocket *websocket.Conn) {
 			router.RouteMessage(o, msg)
 		}
 	}()
+	logger.Infof("Connection %s was created", o.connID)
 }

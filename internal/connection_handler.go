@@ -12,7 +12,9 @@ type ConnectionHandler struct {
 }
 
 func NewConnectionHandler() *ConnectionHandler {
-	return &ConnectionHandler{}
+	return &ConnectionHandler{
+		connections: make(map[string]*OriginC2S),
+	}
 }
 
 func (ch *ConnectionHandler) HandleNewConnection(wsocket *websocket.Conn) {

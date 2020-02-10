@@ -17,6 +17,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
+	internal.InitializeContext("localhost")
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
 		response.Write([]byte("Zirconium server is up and running!"))

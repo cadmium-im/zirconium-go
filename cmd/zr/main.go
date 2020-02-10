@@ -4,13 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/google/uuid"
+	"github.com/ChronosX88/zirconium/internal"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
-var clients = make(map[*websocket.Conn]string)
-var clientsReverse = make(map[string]*websocket.Conn)
+var connectionHandler = internal.NewConnectionHandler()
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -33,27 +32,5 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// register client
-	clients[ws] = uuid.New().String()
-	clientsReverse[clients[ws]] = ws
-	go readLoop(ws)
-	log.Printf("Connection %s created!", clients[ws])
-}
-
-func readLoop(c *websocket.Conn) {
-	for {
-		if _, _, err := c.NextReader(); err != nil {
-			connectionID := clients[c]
-			if connectionID != "" {
-				delete(clients, c)
-				delete(clientsReverse, connectionID)
-				log.Printf("Connection %s closed!", connectionID)
-			} else {
-				log.Println("connection wasn't found")
-			}
-			c.Close()
-			break
-		}
-	}
+	connectionHandler.HandleNewConnection(ws)
 }

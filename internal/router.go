@@ -53,7 +53,14 @@ func (r *Router) RouteMessage(origin *OriginC2S, message models.BaseMessage) {
 			go v.HandlerFunc(origin, message)
 		}
 	} else {
+		protocolError := models.ProtocolError{
+			ErrCode:    "unhandled",
+			ErrText:    "Server doesn't implement message type " + message.MessageType,
+			ErrPayload: make(map[string]interface{}),
+		}
+		errMsg := models.NewBaseMessage(message.ID, message.MessageType, serverDomain, message.From, false, StructToMap(protocolError))
 		logger.Infof("Drop message with type %s because server hasn't proper handlers", message.MessageType)
+		origin.Send(errMsg)
 	}
 }
 

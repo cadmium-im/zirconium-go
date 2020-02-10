@@ -45,6 +45,6 @@ func PrepareMessageUnauthorized(msg models.BaseMessage) models.BaseMessage {
 		ErrText:    "Unauthorized access",
 		ErrPayload: make(map[string]interface{}),
 	}
-	errMsg := models.NewBaseMessage(msg.MessageType, serverDomain, msg.From, false, StructToMap(protocolError))
+	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverDomain, msg.From, false, StructToMap(protocolError))
 	return errMsg
 }

@@ -84,3 +84,7 @@ func (mm *ModuleManager) GenerateToken(entityID, deviceID string, tokenExpireTim
 	token, err := authManager.CreateNewToken(entityID, deviceID, tokenExpireTimeDuration)
 	return token, err
 }
+
+func (mm *ModuleManager) GetServerDomain() string {
+	return serverDomain
+}

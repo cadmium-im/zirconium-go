@@ -1,9 +1,9 @@
 package core
 
 import (
-	"log"
 	"net/rpc"
 
+	"github.com/google/logger"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -22,7 +22,7 @@ func (p *moduleClient) Name() string {
 	var resp string
 	err := p.Client.Call("Plugin.Name", new(interface{}), &resp)
 	if err != nil {
-		log.Fatal(err) // FIXME
+		logger.Fatal(err) // FIXME
 	}
 	return resp
 }
@@ -32,17 +32,18 @@ func (p *moduleClient) Version() string {
 	var resp string
 	err := p.Client.Call("Plugin.Version", new(interface{}), &resp)
 	if err != nil {
-		log.Fatal(err) // FIXME
+		logger.Fatal(err) // FIXME
 	}
 	return resp
 }
 
 // StartTime initiates an RPC call to the plugin for initializing
-func (p *moduleClient) Initialize(moduleAPI *ModuleManager) {
+func (p *moduleClient) Initialize(moduleAPI ModuleAPI) {
+	var resp interface{}
 	err := p.Client.Call("Plugin.Initialize", map[string]interface{}{
 		"moduleAPI": moduleAPI,
-	}, nil)
+	}, &resp)
 	if err != nil {
-		log.Fatal(err) // FIXME
+		logger.Fatal(err) // FIXME
 	}
 }

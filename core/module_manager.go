@@ -19,7 +19,17 @@ type ModuleManager struct {
 	coreEventHandlers  map[string][]func(sourceModuleName string, event map[string]interface{})
 }
 
-func NewModuleManager() (*ModuleManager, error) {
+type ModuleAPI interface {
+	Hook(messageType string, anonymousAllowed bool, handlerFunc func(origin *OriginC2S, message models.BaseMessage))
+	HookInternalEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{}))
+	Unhook(messageType string, handlerFunc func(origin *OriginC2S, message models.BaseMessage))
+	UnhookInternalEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{}))
+	FireEvent(sourceModuleName string, eventName string, eventPayload map[string]interface{})
+	GenerateToken(entityID, deviceID string, tokenExpireTimeDuration time.Duration) (string, error)
+	GetServerDomain() string
+}
+
+func NewModuleManager() (ModuleAPI, error) {
 	var mm = &ModuleManager{
 		c2sMessageHandlers: make(map[string][]*C2SMessageHandler),
 		coreEventHandlers:  make(map[string][]func(sourceModuleName string, event map[string]interface{})),
@@ -36,7 +46,7 @@ func (mm *ModuleManager) Hook(messageType string, anonymousAllowed bool, handler
 	mm.moduleMutex.Unlock()
 }
 
-func (mm *ModuleManager) HookcoreEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
+func (mm *ModuleManager) HookInternalEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
 	mm.moduleMutex.Lock()
 	mm.coreEventHandlers[eventName] = append(mm.coreEventHandlers[eventName], handlerFunc)
 	mm.moduleMutex.Unlock()
@@ -59,7 +69,7 @@ func (mm *ModuleManager) Unhook(messageType string, handlerFunc func(origin *Ori
 	}
 }
 
-func (mm *ModuleManager) UnhookcoreEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
+func (mm *ModuleManager) UnhookInternalEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
 	mm.moduleMutex.Lock()
 	defer mm.moduleMutex.Unlock()
 	var handlers = mm.coreEventHandlers[eventName]

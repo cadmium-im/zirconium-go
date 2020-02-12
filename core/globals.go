@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	moduleMgr     *ModuleManager
+	moduleMgr     ModuleAPI
 	router        *Router
 	authManager   *AuthManager
 	serverDomain  string
@@ -31,11 +31,11 @@ func InitializeContext(sDomain string, pluginsDirPath string, enabledPlugins []s
 	serverDomain = sDomain
 
 	for _, v := range BuiltinPlugins {
-		go v.Initialize(moduleMgr) // Initialize builtin plugins
+		go v.Initialize(ModuleAPI(moduleMgr)) // Initialize builtin plugins
 	}
 
 	pluginManager = NewPluginManager()
 	for _, v := range enabledPlugins {
-		pluginManager.StartPlugin(pluginsDirPath, v, moduleMgr)
+		pluginManager.StartPlugin(pluginsDirPath, v, moduleMgr.(*ModuleManager))
 	}
 }

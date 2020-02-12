@@ -16,7 +16,7 @@ func NewRouter() (*Router, error) {
 		return nil, err
 	}
 	r := &Router{
-		moduleManager: mm,
+		moduleManager: mm.(*ModuleManager),
 	}
 	return r, nil
 }

@@ -5,7 +5,7 @@ const (
 )
 
 type Module interface {
-	Initialize(moduleAPI *ModuleManager)
+	Initialize(moduleAPI ModuleAPI)
 	Name() string
 	Version() string
 }

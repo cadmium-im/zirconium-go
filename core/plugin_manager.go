@@ -15,7 +15,7 @@ func NewPluginManager() *PluginManager {
 	return &PluginManager{}
 }
 
-func (p *PluginManager) StartPlugin(pluginsDirPath, pluginFile string, moduleManager *ModuleManager) error {
+func (p *PluginManager) StartPlugin(pluginsDirPath, pluginFile string, moduleManager ModuleAPI) error {
 	pluginsDirectory, _ := filepath.Abs(filepath.Dir(pluginsDirPath))
 	pluginFile = filepath.Join(pluginsDirectory, pluginFile)
 

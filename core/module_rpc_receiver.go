@@ -32,7 +32,7 @@ func (p *greeterServer) Version(nothing interface{}, result *string) error {
 }
 
 // StartTime calls the plugin implementation to initialize plugin
-func (p *greeterServer) Initialize(moduleAPI *ModuleManager, emptyResult interface{}) error {
+func (p *greeterServer) Initialize(moduleAPI ModuleAPI, emptyResult interface{}) error {
 	p.Module.Initialize(moduleAPI)
 	return nil
 }

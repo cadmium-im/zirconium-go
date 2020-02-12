@@ -1,7 +1,7 @@
-package internal
+package core
 
 import (
-	"github.com/ChronosX88/zirconium/internal/models"
+	"github.com/ChronosX88/zirconium/core/models"
 	"github.com/google/logger"
 )
 
@@ -64,8 +64,8 @@ func (r *Router) RouteMessage(origin *OriginC2S, message models.BaseMessage) {
 	}
 }
 
-func (r *Router) RouteInternalEvent(sourceModuleName string, eventName string, eventPayload map[string]interface{}) {
-	handlers := r.moduleManager.internalEventHandlers[eventName]
+func (r *Router) RoutecoreEvent(sourceModuleName string, eventName string, eventPayload map[string]interface{}) {
+	handlers := r.moduleManager.coreEventHandlers[eventName]
 	if handlers != nil {
 		for _, v := range handlers {
 			go v(sourceModuleName, eventPayload)

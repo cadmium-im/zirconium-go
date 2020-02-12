@@ -1,7 +1,7 @@
-package internal
+package core
 
 import (
-	"github.com/ChronosX88/zirconium/internal/models"
+	"github.com/ChronosX88/zirconium/core/models"
 	"github.com/gorilla/websocket"
 )
 

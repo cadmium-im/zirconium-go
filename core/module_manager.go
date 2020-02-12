@@ -1,11 +1,11 @@
-package internal
+package core
 
 import (
 	"reflect"
 	"sync"
 	"time"
 
-	"github.com/ChronosX88/zirconium/internal/models"
+	"github.com/ChronosX88/zirconium/core/models"
 )
 
 type C2SMessageHandler struct {
@@ -14,15 +14,15 @@ type C2SMessageHandler struct {
 }
 
 type ModuleManager struct {
-	moduleMutex           sync.Mutex
-	c2sMessageHandlers    map[string][]*C2SMessageHandler
-	internalEventHandlers map[string][]func(sourceModuleName string, event map[string]interface{})
+	moduleMutex        sync.Mutex
+	c2sMessageHandlers map[string][]*C2SMessageHandler
+	coreEventHandlers  map[string][]func(sourceModuleName string, event map[string]interface{})
 }
 
 func NewModuleManager() (*ModuleManager, error) {
 	var mm = &ModuleManager{
-		c2sMessageHandlers:    make(map[string][]*C2SMessageHandler),
-		internalEventHandlers: make(map[string][]func(sourceModuleName string, event map[string]interface{})),
+		c2sMessageHandlers: make(map[string][]*C2SMessageHandler),
+		coreEventHandlers:  make(map[string][]func(sourceModuleName string, event map[string]interface{})),
 	}
 	return mm, nil
 }
@@ -36,9 +36,9 @@ func (mm *ModuleManager) Hook(messageType string, anonymousAllowed bool, handler
 	mm.moduleMutex.Unlock()
 }
 
-func (mm *ModuleManager) HookInternalEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
+func (mm *ModuleManager) HookcoreEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
 	mm.moduleMutex.Lock()
-	mm.internalEventHandlers[eventName] = append(mm.internalEventHandlers[eventName], handlerFunc)
+	mm.coreEventHandlers[eventName] = append(mm.coreEventHandlers[eventName], handlerFunc)
 	mm.moduleMutex.Unlock()
 }
 
@@ -59,17 +59,17 @@ func (mm *ModuleManager) Unhook(messageType string, handlerFunc func(origin *Ori
 	}
 }
 
-func (mm *ModuleManager) UnhookInternalEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
+func (mm *ModuleManager) UnhookcoreEvent(eventName string, handlerFunc func(sourceModuleName string, event map[string]interface{})) {
 	mm.moduleMutex.Lock()
 	defer mm.moduleMutex.Unlock()
-	var handlers = mm.internalEventHandlers[eventName]
+	var handlers = mm.coreEventHandlers[eventName]
 	if handlers != nil {
 		for i, v := range handlers {
 			if reflect.ValueOf(v).Pointer() == reflect.ValueOf(handlerFunc).Pointer() {
 				handlers[i] = handlers[len(handlers)-1]
 				handlers[len(handlers)-1] = nil
 				handlers = handlers[:len(handlers)-1]
-				mm.internalEventHandlers[eventName] = handlers
+				mm.coreEventHandlers[eventName] = handlers
 				break
 			}
 		}
@@ -77,7 +77,7 @@ func (mm *ModuleManager) UnhookInternalEvent(eventName string, handlerFunc func(
 }
 
 func (mm *ModuleManager) FireEvent(sourceModuleName string, eventName string, eventPayload map[string]interface{}) {
-	router.RouteInternalEvent(sourceModuleName, eventName, eventPayload)
+	router.RoutecoreEvent(sourceModuleName, eventName, eventPayload)
 }
 
 func (mm *ModuleManager) GenerateToken(entityID, deviceID string, tokenExpireTimeDuration time.Duration) (string, error) {

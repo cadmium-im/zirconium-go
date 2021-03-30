@@ -1,26 +1,28 @@
 package core
 
 import (
-	"github.com/ChronosX88/zirconium/core/models"
+	"github.com/cadmium-im/zirconium-go/core/models"
 	"github.com/google/logger"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 type ConnectionHandler struct {
-	connections map[string]*OriginC2S
+	router      *Router
+	connections map[string]*Session
 }
 
-func NewConnectionHandler() *ConnectionHandler {
+func NewConnectionHandler(r *Router) *ConnectionHandler {
 	return &ConnectionHandler{
-		connections: make(map[string]*OriginC2S),
+		router:      r,
+		connections: make(map[string]*Session),
 	}
 }
 
 func (ch *ConnectionHandler) HandleNewConnection(wsocket *websocket.Conn) {
-	uuid, _ := uuid.NewRandom()
-	uuidStr := uuid.String()
-	o := &OriginC2S{
+	randomUUID, _ := uuid.NewRandom()
+	uuidStr := randomUUID.String()
+	o := &Session{
 		wsConn: wsocket,
 		connID: uuidStr,
 	}
@@ -31,11 +33,11 @@ func (ch *ConnectionHandler) HandleNewConnection(wsocket *websocket.Conn) {
 			err := o.wsConn.ReadJSON(&msg)
 			if err != nil {
 				delete(ch.connections, o.connID)
-				o.wsConn.Close()
+				_ = o.wsConn.Close()
 				logger.Infof("Connection %s was closed. (Reason: %s)", o.connID, err.Error())
 				break
 			}
-			router.RouteMessage(o, msg)
+			ch.router.RouteMessage(o, msg)
 		}
 	}()
 	logger.Infof("Connection %s was created", o.connID)

@@ -5,13 +5,12 @@ type BaseMessage struct {
 	ID          string                 `json:"id"`
 	MessageType string                 `json:"type"`
 	From        string                 `json:"from"`
-	To          string                 `json:"to"`
+	To          []string               `json:"to"`
 	Ok          bool                   `json:"ok"`
-	AuthToken   string                 `json:"authToken"`
 	Payload     map[string]interface{} `json:"payload"`
 }
 
-func NewBaseMessage(id, messageType, from, to string, ok bool, payload map[string]interface{}) BaseMessage {
+func NewBaseMessage(id, messageType, from string, to []string, ok bool, payload map[string]interface{}) BaseMessage {
 	return BaseMessage{
 		ID:          id,
 		MessageType: messageType,

@@ -5,34 +5,22 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
-	"net/http"
 	"os"
 
-	core "github.com/ChronosX88/zirconium/core"
+	"github.com/cadmium-im/zirconium-go/core"
 	"github.com/google/logger"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/pelletier/go-toml"
 )
 
-var connectionHandler = core.NewConnectionHandler()
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
 func main() {
-
-	var cfg core.ServerConfig
+	var cfg core.Config
 	var configPath string
 	var generateConfig bool
 	flag.StringVar(&configPath, "config", "", "Path to config")
 	flag.BoolVar(&generateConfig, "gen_config", false, "Generate the config")
 	flag.Parse()
 	if generateConfig == true {
-		sampleConfig := &core.ServerConfig{}
+		sampleConfig := &core.Config{}
 		val, err := toml.Marshal(sampleConfig)
 		if err != nil {
 			logger.Errorf("Failed to generate config: %s", err.Error())
@@ -61,30 +49,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	core.InitializeContext(cfg.ServerDomain, cfg.PluginsDirPath, cfg.EnabledPlugins)
-	router := mux.NewRouter()
-	router.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
-		response.Write([]byte("Zirconium server is up and running!"))
-	}).Methods("GET")
-	router.HandleFunc("/ws", wsHandler)
-
+	ac := core.NewAppContext(&cfg)
 	logger.Info("Zirconium successfully started!")
-	logger.Fatal(http.ListenAndServe(":8844", router))
+	logger.Fatal(ac.Run())
 }
 
-func wsHandler(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	connectionHandler.HandleNewConnection(ws)
-}
-
-func validateConfig(config *core.ServerConfig) error {
-	if config.ServerDomain == "" {
-		return errors.New("server domain isn't specified")
-	} else if config.PluginsDirPath == "" {
-		return errors.New("plugin directory path isn't specified")
+func validateConfig(config *core.Config) error {
+	if config.ServerID == "" {
+		return errors.New("server id isn't specified")
 	}
 	return nil
 }

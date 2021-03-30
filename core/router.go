@@ -1,56 +1,43 @@
 package core
 
 import (
-	"github.com/ChronosX88/zirconium/core/models"
+	"github.com/cadmium-im/zirconium-go/core/models"
 	"github.com/google/logger"
 )
 
 type Router struct {
-	moduleManager *ModuleManager
-	connections   []*OriginC2S
+	appContext  *AppContext
+	handlers    map[string][]C2SMessageHandler
+	connections []*Session
 }
 
-func NewRouter() (*Router, error) {
-	mm, err := NewModuleManager()
-	if err != nil {
-		return nil, err
-	}
+type C2SMessageHandler interface {
+	HandleMessage(s *Session, message models.BaseMessage)
+	IsAuthorizationRequired() bool
+	HandlingType() string
+}
+
+func NewRouter(ctx *AppContext) (*Router, error) {
 	r := &Router{
-		moduleManager: mm.(*ModuleManager),
+		appContext: ctx,
+		handlers:   map[string][]C2SMessageHandler{},
 	}
 	return r, nil
 }
 
-func (r *Router) RouteMessage(origin *OriginC2S, message models.BaseMessage) {
-	handlers := r.moduleManager.c2sMessageHandlers[message.MessageType]
+func (r *Router) RouteMessage(origin *Session, message models.BaseMessage) {
+	handlers := r.handlers[message.MessageType]
 	if handlers != nil {
 		for _, v := range handlers {
-			if !v.AnonymousAllowed {
-				var entityID, deviceID string
-				var isValid bool
-				var err error
-				if message.AuthToken != "" {
-					isValid, entityID, deviceID, err = authManager.ValidateToken(message.AuthToken)
-					if err != nil || !isValid {
-						logger.Warningf("Connection %s isn't authorized", origin.connID)
-						msg := PrepareMessageUnauthorized(message)
-						origin.Send(msg)
-					}
-				} else {
+			if v.IsAuthorizationRequired() {
+				if len(origin.entityID) == 0 {
 					logger.Warningf("Connection %s isn't authorized", origin.connID)
 
-					msg := PrepareMessageUnauthorized(message)
-					origin.Send(msg)
-				}
-
-				if origin.entityID == nil {
-					origin.entityID = models.NewEntityID(entityID)
-				}
-				if origin.deviceID == nil {
-					origin.deviceID = &deviceID
+					msg := PrepareMessageUnauthorized(message, r.appContext.cfg.ServerDomains[0]) // fixme: domain
+					_ = origin.Send(msg)
 				}
 			}
-			go v.HandlerFunc(origin, message)
+			go v.HandleMessage(origin, message)
 		}
 	} else {
 		protocolError := models.ProtocolError{
@@ -58,19 +45,12 @@ func (r *Router) RouteMessage(origin *OriginC2S, message models.BaseMessage) {
 			ErrText:    "Server doesn't implement message type " + message.MessageType,
 			ErrPayload: make(map[string]interface{}),
 		}
-		errMsg := models.NewBaseMessage(message.ID, message.MessageType, serverDomain, message.From, false, StructToMap(protocolError))
+		errMsg := models.NewBaseMessage(message.ID, message.MessageType, r.appContext.cfg.ServerID, []string{message.From}, false, StructToMap(protocolError))
 		logger.Infof("Drop message with type %s because server hasn't proper handlers", message.MessageType)
-		origin.Send(errMsg)
+		_ = origin.Send(errMsg)
 	}
 }
 
-func (r *Router) RoutecoreEvent(sourceModuleName string, eventName string, eventPayload map[string]interface{}) {
-	handlers := r.moduleManager.coreEventHandlers[eventName]
-	if handlers != nil {
-		for _, v := range handlers {
-			go v(sourceModuleName, eventPayload)
-		}
-	} else {
-		logger.Infof("Drop event %s because server hasn't proper handlers", eventName)
-	}
+func (r *Router) RegisterC2SHandler(c C2SMessageHandler) {
+	r.handlers[c.HandlingType()] = append(r.handlers[c.HandlingType()], c)
 }

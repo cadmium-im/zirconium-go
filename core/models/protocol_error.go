@@ -1,7 +1,7 @@
 package models
 
 type ProtocolError struct {
-	ErrCode    string                 `json:"errCode"`
-	ErrText    string                 `json:"errText"`
-	ErrPayload map[string]interface{} `json:"errPayload"`
+	ErrCode    string                 `json:"code"`
+	ErrText    string                 `json:"text"`
+	ErrPayload map[string]interface{} `json:"payload"`
 }

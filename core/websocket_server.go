@@ -15,15 +15,15 @@ var wsUpgrader = websocket.Upgrader{
 }
 
 type WebsocketServer struct {
-	r           *mux.Router
-	connHandler *ConnectionHandler
-	cfg         *Config
+	r              *mux.Router
+	sessionManager *SessionManager
+	cfg            *Config
 }
 
-func NewWebsocketServer(cfg *Config, connHandler *ConnectionHandler) *WebsocketServer {
+func NewWebsocketServer(cfg *Config, sessionManager *SessionManager) *WebsocketServer {
 	wss := &WebsocketServer{}
 
-	wss.connHandler = connHandler
+	wss.sessionManager = sessionManager
 	wss.cfg = cfg
 	r := mux.NewRouter()
 	wss.r = r
@@ -36,7 +36,7 @@ func NewWebsocketServer(cfg *Config, connHandler *ConnectionHandler) *WebsocketS
 			logger.Errorf(err.Error())
 			return
 		}
-		wss.connHandler.HandleNewConnection(ws)
+		wss.sessionManager.HandleNewConnection(ws)
 	})
 
 	return wss

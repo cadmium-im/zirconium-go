@@ -5,7 +5,7 @@ type BaseMessage struct {
 	ID          string                 `json:"id"`
 	MessageType string                 `json:"type"`
 	From        string                 `json:"from"`
-	To          []string               `json:"to"`
+	To          []string               `json:"to,omitempty"`
 	Ok          bool                   `json:"ok"`
 	Payload     map[string]interface{} `json:"payload"`
 }

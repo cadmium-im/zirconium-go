@@ -6,10 +6,9 @@ import (
 )
 
 type Session struct {
-	wsConn   *websocket.Conn
-	connID   string
-	entityID []*models.EntityID
-	deviceID *string
+	wsConn *websocket.Conn
+	connID string
+	Claims *JWTCustomClaims
 }
 
 func (s *Session) Send(message models.BaseMessage) error {

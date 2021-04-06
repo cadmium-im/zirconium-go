@@ -7,24 +7,23 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type ConnectionHandler struct {
+type SessionManager struct {
 	router      *Router
 	connections map[string]*Session
 }
 
-func NewConnectionHandler(r *Router) *ConnectionHandler {
-	return &ConnectionHandler{
+func NewSessionManager(r *Router) *SessionManager {
+	return &SessionManager{
 		router:      r,
 		connections: make(map[string]*Session),
 	}
 }
 
-func (ch *ConnectionHandler) HandleNewConnection(wsocket *websocket.Conn) {
-	randomUUID, _ := uuid.NewRandom()
-	uuidStr := randomUUID.String()
+func (ch *SessionManager) HandleNewConnection(wsocket *websocket.Conn) {
+	randomUUID := uuid.New().String()
 	o := &Session{
 		wsConn: wsocket,
-		connID: uuidStr,
+		connID: randomUUID,
 	}
 	ch.connections[o.connID] = o
 	go func() {

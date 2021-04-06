@@ -2,13 +2,14 @@ package core
 
 import (
 	"github.com/cadmium-im/zirconium-go/core/models"
+	"github.com/cadmium-im/zirconium-go/core/utils"
+	"github.com/fatih/structs"
 	"github.com/google/logger"
 )
 
 type Router struct {
-	appContext  *AppContext
-	handlers    map[string][]C2SMessageHandler
-	connections []*Session
+	appContext *AppContext
+	handlers   map[string][]C2SMessageHandler
 }
 
 type C2SMessageHandler interface {
@@ -30,10 +31,10 @@ func (r *Router) RouteMessage(origin *Session, message models.BaseMessage) {
 	if handlers != nil {
 		for _, v := range handlers {
 			if v.IsAuthorizationRequired() {
-				if len(origin.entityID) == 0 {
+				if origin.Claims == nil {
 					logger.Warningf("Connection %s isn't authorized", origin.connID)
 
-					msg := PrepareMessageUnauthorized(message, r.appContext.cfg.ServerDomains[0]) // fixme: domain
+					msg := utils.PrepareMessageUnauthorized(message, r.appContext.cfg.ServerDomains[0]) // fixme: domain
 					_ = origin.Send(msg)
 				}
 			}
@@ -45,7 +46,7 @@ func (r *Router) RouteMessage(origin *Session, message models.BaseMessage) {
 			ErrText:    "Server doesn't implement message type " + message.MessageType,
 			ErrPayload: make(map[string]interface{}),
 		}
-		errMsg := models.NewBaseMessage(message.ID, message.MessageType, r.appContext.cfg.ServerID, []string{message.From}, false, StructToMap(protocolError))
+		errMsg := models.NewBaseMessage(message.ID, message.MessageType, r.appContext.cfg.ServerID, []string{message.From}, false, structs.Map(protocolError))
 		logger.Infof("Drop message with type %s because server hasn't proper handlers", message.MessageType)
 		_ = origin.Send(errMsg)
 	}

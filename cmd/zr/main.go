@@ -16,8 +16,10 @@ func main() {
 	var cfg core.Config
 	var configPath string
 	var generateConfig bool
+
+	defer logger.Init("auth-server", true, false, ioutil.Discard).Close() // TODO Make ability to use file for log output
 	flag.StringVar(&configPath, "config", "", "Path to config")
-	flag.BoolVar(&generateConfig, "gen_config", false, "Generate the config")
+	flag.BoolVar(&generateConfig, "gen-config", false, "Generate the config")
 	flag.Parse()
 	if generateConfig == true {
 		sampleConfig := &core.Config{}

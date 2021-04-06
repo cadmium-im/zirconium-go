@@ -10,13 +10,13 @@ import (
 )
 
 type AppContext struct {
-	router            *Router
-	authManager       *AuthManager
-	connectionHandler *ConnectionHandler
-	websocketServer   *WebsocketServer
-	cfg               *Config
-	database          *mongo.Database
-	userManager       *UserManager
+	router          *Router
+	authManager     *AuthManager
+	sessionManager  *SessionManager
+	websocketServer *WebsocketServer
+	cfg             *Config
+	database        *mongo.Database
+	userManager     *UserManager
 }
 
 func NewAppContext(cfg *Config) *AppContext {
@@ -32,19 +32,22 @@ func NewAppContext(cfg *Config) *AppContext {
 	}
 	appContext.router = router
 
-	authManager, err := NewAuthManager()
+	um, err := NewUserManager(appContext.database)
+	if err != nil {
+		logger.Fatalf("Unable to initialize user manager: %s", err.Error())
+	}
+	appContext.userManager = um
+
+	authManager, err := NewAuthManager(um, cfg.ServerID, router)
 	if err != nil {
 		logger.Fatalf("Unable to initialize authentication manager: %s", err.Error())
 	}
 	appContext.authManager = authManager
 
-	um := NewUserManager(appContext.database)
-	appContext.userManager = um
+	sessionManager := NewSessionManager(router)
+	appContext.sessionManager = sessionManager
 
-	connHandler := NewConnectionHandler(router)
-	appContext.connectionHandler = connHandler
-
-	wss := NewWebsocketServer(cfg, connHandler)
+	wss := NewWebsocketServer(cfg, sessionManager)
 	appContext.websocketServer = wss
 
 	return appContext
@@ -72,6 +75,5 @@ func (ac *AppContext) connectToDatabase() {
 }
 
 func (ac *AppContext) Run() error {
-	// TODO
-	return nil
+	return ac.websocketServer.Run()
 }

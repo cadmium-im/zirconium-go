@@ -44,7 +44,7 @@ func NewAppContext(cfg *Config) *AppContext {
 	}
 	appContext.authManager = authManager
 
-	sessionManager := NewSessionManager(router)
+	sessionManager := NewSessionManager(router, cfg.ServerDomains)
 	appContext.sessionManager = sessionManager
 
 	wss := NewWebsocketServer(cfg, sessionManager)

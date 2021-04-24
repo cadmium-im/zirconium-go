@@ -28,7 +28,7 @@ func PrepareMessageUnauthorized(msg models.BaseMessage, serverDomain string) mod
 		ErrText:    "Unauthorized access",
 		ErrPayload: make(map[string]interface{}),
 	}
-	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverDomain, []string{msg.From}, false, structs.Map(protocolError))
+	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverDomain, msg.From, false, structs.Map(protocolError))
 	return errMsg
 }
 
@@ -38,11 +38,7 @@ func PrepareMessageInternalServerError(msg models.BaseMessage, err error, server
 		ErrText:    err.Error(),
 		ErrPayload: nil,
 	}
-	var to []string
-	if msg.From != "" {
-		to = append(to, msg.From)
-	}
-	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverID, to, false, structs.Map(protocolError))
+	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverID, msg.From, false, structs.Map(protocolError))
 	return errMsg
 }
 
@@ -52,11 +48,7 @@ func PrepareErrorMessage(msg models.BaseMessage, errorType string, errorText str
 		ErrText:    errorText,
 		ErrPayload: nil,
 	}
-	var to []string
-	if msg.From != "" {
-		to = append(to, msg.From)
-	}
-	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverID, to, false, structs.Map(protocolError))
+	errMsg := models.NewBaseMessage(msg.ID, msg.MessageType, serverID, msg.From, false, structs.Map(protocolError))
 	return errMsg
 }
 
@@ -88,4 +80,13 @@ func IsCollectionExists(ctx context.Context, db *mongo.Database, collectionName 
 		}
 	}
 	return isExists, nil
+}
+
+func InStringArray(val string, array []string) (ok bool) {
+	for i := range array {
+		if ok = array[i] == val; ok {
+			return
+		}
+	}
+	return
 }

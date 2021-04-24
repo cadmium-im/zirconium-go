@@ -37,3 +37,15 @@ func TestNewEntityIDFromStringWithEmailAttr(t *testing.T) {
 		t.Fatal(eid.String())
 	}
 }
+
+func TestNewEntityIDFromStringWithOnlyServerPart(t *testing.T) {
+	str := "cadmium.org"
+
+	eid, err := NewEntityIDFromString(str)
+	if err != nil {
+		t.Fatal("error must be null")
+	}
+	if !eid.OnlyServerPart && eid.ServerPart != "cadmium.org" {
+		t.Fatal(eid.String())
+	}
+}

@@ -16,16 +16,26 @@ const (
 )
 
 type EntityID struct {
-	Type       EntityIDType
-	LocalPart  string
-	ServerPart string
-	Attr       string
+	Type           EntityIDType
+	LocalPart      string
+	ServerPart     string
+	Attr           string
+	OnlyServerPart bool
 }
 
 func NewEntityIDFromString(entityID string) (*EntityID, error) {
 	eid := &EntityID{}
 	typ := string(entityID[0])
 	withAttr := false
+	localAndServerPart := strings.Split(entityID, "@")
+	if localAndServerPart[0] == "" {
+		localAndServerPart = localAndServerPart[1:]
+	}
+	if len(localAndServerPart) == 1 {
+		eid.ServerPart = localAndServerPart[0]
+		eid.OnlyServerPart = true
+		return eid, nil
+	}
 
 	switch EntityIDType(typ) {
 	case UsernameType:
@@ -47,10 +57,6 @@ func NewEntityIDFromString(entityID string) (*EntityID, error) {
 		return nil, fmt.Errorf("invalid entity id type: %s", typ)
 	}
 
-	localAndServerPart := strings.Split(entityID, "@")
-	if len(localAndServerPart) == 3 && localAndServerPart[0] == "" {
-		localAndServerPart = localAndServerPart[0:]
-	}
 	if !withAttr {
 		eid.LocalPart = localAndServerPart[0]
 		eid.ServerPart = localAndServerPart[1]

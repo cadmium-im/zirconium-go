@@ -34,7 +34,7 @@ func (r *Router) RouteMessage(origin *Session, message models.BaseMessage) {
 				if origin.Claims == nil {
 					logger.Warningf("Connection %s isn't authorized", origin.connID)
 
-					msg := utils.PrepareMessageUnauthorized(message, r.appContext.cfg.ServerDomains[0]) // fixme: domain
+					msg := utils.PrepareMessageUnauthorized(message, message.To) // fixme: domain
 					_ = origin.Send(msg)
 				}
 			}
@@ -46,7 +46,7 @@ func (r *Router) RouteMessage(origin *Session, message models.BaseMessage) {
 			ErrText:    "Server doesn't implement message type " + message.MessageType,
 			ErrPayload: make(map[string]interface{}),
 		}
-		errMsg := models.NewBaseMessage(message.ID, message.MessageType, r.appContext.cfg.ServerID, []string{message.From}, false, structs.Map(protocolError))
+		errMsg := models.NewBaseMessage(message.ID, message.MessageType, message.To, message.From, false, structs.Map(protocolError))
 		logger.Infof("Drop message with type %s because server hasn't proper handlers", message.MessageType)
 		_ = origin.Send(errMsg)
 	}

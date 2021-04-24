@@ -4,13 +4,13 @@ package models
 type BaseMessage struct {
 	ID          string                 `json:"id"`
 	MessageType string                 `json:"type"`
-	From        string                 `json:"from"`
-	To          []string               `json:"to,omitempty"`
+	From        string                 `json:"from,omitempty"`
+	To          string                 `json:"to,omitempty"`
 	Ok          bool                   `json:"ok"`
 	Payload     map[string]interface{} `json:"payload"`
 }
 
-func NewBaseMessage(id, messageType, from string, to []string, ok bool, payload map[string]interface{}) BaseMessage {
+func NewBaseMessage(id, messageType, from string, to string, ok bool, payload map[string]interface{}) BaseMessage {
 	return BaseMessage{
 		ID:          id,
 		MessageType: messageType,
@@ -18,5 +18,16 @@ func NewBaseMessage(id, messageType, from string, to []string, ok bool, payload 
 		To:          to,
 		Ok:          ok,
 		Payload:     payload,
+	}
+}
+
+func NewEmptyBaseMessage() BaseMessage {
+	return BaseMessage{
+		ID:          "",
+		MessageType: "",
+		From:        "",
+		To:          "",
+		Ok:          true,
+		Payload:     map[string]interface{}{},
 	}
 }

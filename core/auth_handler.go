@@ -36,7 +36,7 @@ func (ah *AuthHandler) HandleMessage(s *Session, message models.BaseMessage) {
 			token, claims, err := ah.authManager.HandleSimpleAuth(authRequest.Fields["username"].(string), authRequest.Fields["password"].(string))
 			if err != nil {
 				if mongo.ErrNoDocuments == err {
-					msg := utils.PrepareErrorMessage(message, "auth-failed", "invalid username", ah.serverID)
+					msg := utils.PrepareErrorMessage(message, "auth-failed", "invalid username", message.To)
 					_ = s.Send(msg)
 					return
 				}
@@ -50,7 +50,7 @@ func (ah *AuthHandler) HandleMessage(s *Session, message models.BaseMessage) {
 				DeviceID: claims.DeviceID,
 			}
 			payload := structs.Map(ar)
-			msg := models.NewBaseMessage(message.ID, message.MessageType, ah.serverID, nil, true, payload)
+			msg := models.NewBaseMessage(message.ID, message.MessageType, ah.serverID, "", true, payload)
 			_ = s.Send(msg)
 			s.Claims = claims
 			return
@@ -65,7 +65,7 @@ func (ah *AuthHandler) HandleMessage(s *Session, message models.BaseMessage) {
 				return
 			}
 			s.Claims = claims
-			msg := models.NewBaseMessage(message.ID, message.MessageType, ah.serverID, nil, true, nil)
+			msg := models.NewBaseMessage(message.ID, message.MessageType, ah.serverID, "", true, nil)
 			_ = s.Send(msg)
 			return
 		}

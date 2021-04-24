@@ -15,6 +15,12 @@ func (s *Session) Send(message models.BaseMessage) error {
 	return s.wsConn.WriteJSON(message)
 }
 
+func (s *Session) Receive() (models.BaseMessage, error) {
+	var msg models.BaseMessage
+	err := s.wsConn.ReadJSON(&msg)
+	return msg, err
+}
+
 func (s *Session) Close() error {
 	return s.wsConn.Close()
 }
